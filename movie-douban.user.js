@@ -79,7 +79,6 @@ class bdMovieSecret {
 
 }
 
-
 // 缓存相关方法
 function CacheStorage(name, expire = null) {
     let now = Date.now();
@@ -244,6 +243,192 @@ class req {
 
 }
 
+async function getImdb() {
+    // 中栏加强
+    $("div#interest_sectl").append(`<div class='rating_wrap clearbox' id='loading_more_rate'>加载第三方评价信息中.......</div>
+<div class="rating_wrap clearbox rating_imdb" rel="v:rating" style="display:none"></div>
+<div class="rating_wrap clearbox rating_rott" style="display:none"></div>
+<div class="rating_wrap clearbox rating_anidb" rel="v:rating" style="border-top: 1px solid #eaeaea; display:none"></div>
+<div class="rating_more" style="display:none"></div>`); // 修复部分情况$("div.rating_betterthan")不存在情况
+
+    let imdbUrl = document.evaluate('//*[@id="info"]/a', document.documentElement, null, XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue.href;
+    let doc = await req.getDom(imdbUrl);
+    let rating_more = $('#interest_sectl .rating_more');
+    let imdb_link, imdb_id, imdb_average_rating, imdb_votes, imdb_rating;
+    if ($("div.txt-block:contains('Motion Picture Rating')", doc).text().length > 0) {
+        let mpaaText = $("div.txt-block:contains('Motion Picture Rating')", doc).text().trim().replace(/\n/g, '').replace(/^.*Rated /, '').replace(/ .*$/, '')
+        let mpaa = mpaaText.replace(/^G$/, '大众级 | 全年龄').replace(/^PG$/, '指导级 | ≥6岁').replace(/^PG-13$/, '特指级 | ≥13岁').replace(/^NC-17$/, '限定级 | ≥17岁').replace(/^R$/, '限制级 | ≥18岁');
+        //todo float
+        rating_more.append(`<div>分级<a href='${imdb_link + 'parentalguide?ref_=tt_stry_pg#certification'}' style="margin-left:-35px" target="_blank" data-zh="${mpaa}">${mpaaText}</a></div>`);
+    }
+    if ($("div.txt-block:contains('Budget:')", doc).text().length > 0) {
+        let budget = $("div.txt-block:contains('Budget:')", doc).text().trim().replace(/\n/g, '').replace(/ .*$/, '').replace(/^Budget:/, '').replace(/CNY./, '¥').replace(/KRW./, '₩').replace(/JPY./, '円').replace(/HKD./, '港');
+        rating_more.append(`<div>总成本<a href='${imdb_link + '?rf=cons_tt_bo_tt&ref_=cons_tt_bo_tt'}' style="margin-left:-35px" target="_blank">${budget}</a></div>`);
+    }
+    if ($("div.txt-block:contains('Opening Weekend:'):not(:contains('USA:'))", doc).text().length > 0) {
+        let opening = $("div.txt-block:contains('Opening Weekend:'):not(:contains('USA:'))", doc).text().trim().replace(/\n/g, '').replace(/^Opening Weekend:/, '').replace(/ \(.*$/, '').replace(/CNY./, '¥').replace(/KRW./, '₩').replace(/JPY./, '円').replace(/HKD./, '港');
+        rating_more.append(`<div>本首周<a href='${imdb_link + '?rf=cons_tt_bo_tt&ref_=cons_tt_bo_tt'}' style="margin-left:-35px" target="_blank">${opening}</a></div>`);
+    }
+    if ($("div.txt-block:contains('Opening Weekend USA:')", doc).text().length > 0) {
+        let openingusa = $("div.txt-block:contains('Opening Weekend USA:')", doc).text().trim().replace(/\n/g, '').replace(/^Opening Weekend USA:/, '').replace(/,\d+ .*$/, '');
+        rating_more.append(`<div>美首周<a href='${imdb_link + '?rf=cons_tt_bo_tt&ref_=cons_tt_bo_tt'}' style="margin-left:-35px" target="_blank">${openingusa}</a></div>`);
+    }
+    if ($("div.txt-block:contains('Gross USA:')", doc).text().length > 0) {
+        let gross = $("div.txt-block:contains('Gross USA:')", doc).text().trim().replace(/\n/g, '').replace(/^Gross USA:/, '').replace(/\, \d+ .*$/, '');
+        rating_more.append(`<div>美票房<a href='${imdb_link + '?rf=cons_tt_bo_tt&ref_=cons_tt_bo_tt'}' style="margin-left:-35px" target="_blank">${gross}</a></div>`);
+    }
+    if ($("div.txt-block:contains('Cumulative Worldwide Gross:')", doc).text().length > 0) {
+        let cumulative = $("div.txt-block:contains('Cumulative Worldwide Gross:')", doc).text().trim().replace(/\n/g, '').replace(/^Cumulative Worldwide Gross:/, '').replace(/\, \d+ .*$/, '');
+        rating_more.append(`<div>总票房<a href='${imdb_link + '?rf=cons_tt_bo_tt&ref_=cons_tt_bo_tt'}' style="margin-left:-35px" target="_blank">${cumulative}</a></div>`);
+    }
+    if ($("div.txt-block:contains('Aspect Ratio:')", doc).text().length > 0) {
+        let aspect = $("div.txt-block:contains('Aspect Ratio:')", doc).text().trim().replace(/\n/g, '').replace(/^Aspect Ratio:/, '');
+        rating_more.append(`<div>宽高比<a href='${imdb_link + 'technical?ref_=tt_dt_spec'}' style="margin-left:-35px" target="_blank">${aspect}</a></div>`);
+    }
+
+    rating_more.show();
+    $("#loading_more_rate").hide();
+}
+
+class Resource {
+
+    static init() {
+        //todo 先实现一个缓存层
+        let style = `
+        #resource-doulist {
+            margin-bottom: 30px;
+
+        }
+    #resource-doulist > ul > li > div.title .from{
+   border: 2px solid #ddd;
+    padding: 1px 2px;
+    border-radius: 13%;
+    font-weight: 500;
+    color: #666; 
+    
+    }
+    
+        #resource-doulist > ul > li > div.title .size{
+    background: #FED49A;
+    font-size: 13px;
+    line-height: 13px;
+    padding: 2px;
+    color: #666;
+    border-radius: 12% 15%;
+    }
+    
+    #resource-doulist > ul > li > div.sbar {
+font: 12px Helvetica,Arial,sans-serif;
+    line-height: 1.62;
+    font-size: 13px;
+    color: #111;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content:left; 
+    align-items: center;
+    flex-flow: row;
+    border-bottom: 1px solid #eee;
+    margin: 4px 2px;
+}
+    #resource-doulist > ul > li > div.sbar span{
+    margin: 0 2px;
+}
+    `;
+
+        GM_addStyle(style);
+
+        let str = `<div id="resource-doulist"><h2><i class="">资源</i>· · · · · ·
+        <span class="pl">
+        (todo)
+        </span></h2><ul id="resource-ul">
+    `;
+        str += `</ul></div>`;
+
+        $("#content > div.grid-16-8.clearfix > div.aside").prepend(str)
+    }
+
+    /**
+     * @from 来源
+     * @url 下载所在详情页面
+     * @title 标题
+     * @size 大小
+     * @heat 热度
+     * @downloadLink 下载地址
+     */
+    static show() {
+        let d, str = '';
+        dd('aa', targets)
+        for (const index of targets.keys()) {
+            d = targets[index];
+            str += `
+            <li>
+            <div class="title">
+                <span class="from">${d.from}</span>
+                `
+            if (d.size) {
+                str += `<span class="size">${d.sizeText}</span>`
+            }
+            str += `
+            <a href="${d.url}">${d.title}</a>
+            </div>`;
+            str += `<div class="sbar">`;
+            str += `<span ><a class="put-to-server" data-index=${index}  href="javascript:void(0)">发送服务器</a></span>`
+            str += `<span><a href="${d.downloadLink}" target="_blank">下载地址</a></span>`
+
+            if (d.heat) {
+                str += `<span class="heat">热度：${d.heat}</span>`
+            }
+            str += '</div></li>'
+        }
+
+        //resource-ul
+        dd('s', str)
+        $("#resource-ul").html(str)
+        $('.put-to-server').click(function () {
+            let a = $(this).attr('data-index')
+            Server.putToServer(a);
+        })
+    }
+
+    static sort() {
+        //100-900
+        const sizeHander = (item) => {
+            let size = (item.size || '').toLocaleLowerCase();
+            let sizeNumber = (size.includes('g')) ? parseFloat(item.size * 1000) : parseFloat(item.size);
+            let score = 500;
+            if (!size || isNaN(sizeNumber)) {
+                return score;
+            }
+            //(1,500),(2,800),(3,900),(4,800),5(500)
+            score = -100 * sizeNumber * sizeNumber + 600 * sizeNumber;
+            if (score < 0) {
+                score = 100;
+            }
+            return score;
+        };
+
+        for (let item of targets) {
+            item.score = 0;
+            //size 2g  左右
+            item.score += sizeHander(item);
+        }
+        targets.some((a, b) => {
+            return a.score - b.score;
+        })
+    }
+
+    static async run() {
+        dd('re run')
+        Resource.init();
+        //todo 后面再改
+        await BdFileResource.request();
+        // Resource.sort();
+        Resource.show();
+    }
+}
+
 class BdFileResource {
     static async makeTarget() {
         targets = cache.get('targets') || [];
@@ -343,53 +528,6 @@ class BdFileResource {
     }
 }
 
-async function getImdb() {
-    // 中栏加强
-    $("div#interest_sectl").append(`<div class='rating_wrap clearbox' id='loading_more_rate'>加载第三方评价信息中.......</div>
-<div class="rating_wrap clearbox rating_imdb" rel="v:rating" style="display:none"></div>
-<div class="rating_wrap clearbox rating_rott" style="display:none"></div>
-<div class="rating_wrap clearbox rating_anidb" rel="v:rating" style="border-top: 1px solid #eaeaea; display:none"></div>
-<div class="rating_more" style="display:none"></div>`); // 修复部分情况$("div.rating_betterthan")不存在情况
-
-    let imdbUrl = document.evaluate('//*[@id="info"]/a', document.documentElement, null, XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue.href;
-    let doc = await req.getDom(imdbUrl);
-    let rating_more = $('#interest_sectl .rating_more');
-    let imdb_link, imdb_id, imdb_average_rating, imdb_votes, imdb_rating;
-    if ($("div.txt-block:contains('Motion Picture Rating')", doc).text().length > 0) {
-        let mpaaText = $("div.txt-block:contains('Motion Picture Rating')", doc).text().trim().replace(/\n/g, '').replace(/^.*Rated /, '').replace(/ .*$/, '')
-        let mpaa = mpaaText.replace(/^G$/, '大众级 | 全年龄').replace(/^PG$/, '指导级 | ≥6岁').replace(/^PG-13$/, '特指级 | ≥13岁').replace(/^NC-17$/, '限定级 | ≥17岁').replace(/^R$/, '限制级 | ≥18岁');
-        //todo float
-        rating_more.append(`<div>分级<a href='${imdb_link + 'parentalguide?ref_=tt_stry_pg#certification'}' style="margin-left:-35px" target="_blank" data-zh="${mpaa}">${mpaaText}</a></div>`);
-    }
-    if ($("div.txt-block:contains('Budget:')", doc).text().length > 0) {
-        let budget = $("div.txt-block:contains('Budget:')", doc).text().trim().replace(/\n/g, '').replace(/ .*$/, '').replace(/^Budget:/, '').replace(/CNY./, '¥').replace(/KRW./, '₩').replace(/JPY./, '円').replace(/HKD./, '港');
-        rating_more.append(`<div>总成本<a href='${imdb_link + '?rf=cons_tt_bo_tt&ref_=cons_tt_bo_tt'}' style="margin-left:-35px" target="_blank">${budget}</a></div>`);
-    }
-    if ($("div.txt-block:contains('Opening Weekend:'):not(:contains('USA:'))", doc).text().length > 0) {
-        let opening = $("div.txt-block:contains('Opening Weekend:'):not(:contains('USA:'))", doc).text().trim().replace(/\n/g, '').replace(/^Opening Weekend:/, '').replace(/ \(.*$/, '').replace(/CNY./, '¥').replace(/KRW./, '₩').replace(/JPY./, '円').replace(/HKD./, '港');
-        rating_more.append(`<div>本首周<a href='${imdb_link + '?rf=cons_tt_bo_tt&ref_=cons_tt_bo_tt'}' style="margin-left:-35px" target="_blank">${opening}</a></div>`);
-    }
-    if ($("div.txt-block:contains('Opening Weekend USA:')", doc).text().length > 0) {
-        let openingusa = $("div.txt-block:contains('Opening Weekend USA:')", doc).text().trim().replace(/\n/g, '').replace(/^Opening Weekend USA:/, '').replace(/,\d+ .*$/, '');
-        rating_more.append(`<div>美首周<a href='${imdb_link + '?rf=cons_tt_bo_tt&ref_=cons_tt_bo_tt'}' style="margin-left:-35px" target="_blank">${openingusa}</a></div>`);
-    }
-    if ($("div.txt-block:contains('Gross USA:')", doc).text().length > 0) {
-        let gross = $("div.txt-block:contains('Gross USA:')", doc).text().trim().replace(/\n/g, '').replace(/^Gross USA:/, '').replace(/\, \d+ .*$/, '');
-        rating_more.append(`<div>美票房<a href='${imdb_link + '?rf=cons_tt_bo_tt&ref_=cons_tt_bo_tt'}' style="margin-left:-35px" target="_blank">${gross}</a></div>`);
-    }
-    if ($("div.txt-block:contains('Cumulative Worldwide Gross:')", doc).text().length > 0) {
-        let cumulative = $("div.txt-block:contains('Cumulative Worldwide Gross:')", doc).text().trim().replace(/\n/g, '').replace(/^Cumulative Worldwide Gross:/, '').replace(/\, \d+ .*$/, '');
-        rating_more.append(`<div>总票房<a href='${imdb_link + '?rf=cons_tt_bo_tt&ref_=cons_tt_bo_tt'}' style="margin-left:-35px" target="_blank">${cumulative}</a></div>`);
-    }
-    if ($("div.txt-block:contains('Aspect Ratio:')", doc).text().length > 0) {
-        let aspect = $("div.txt-block:contains('Aspect Ratio:')", doc).text().trim().replace(/\n/g, '').replace(/^Aspect Ratio:/, '');
-        rating_more.append(`<div>宽高比<a href='${imdb_link + 'technical?ref_=tt_dt_spec'}' style="margin-left:-35px" target="_blank">${aspect}</a></div>`);
-    }
-
-    rating_more.show();
-    $("#loading_more_rate").hide();
-}
-
 async function showWant(wantRes) {
     const url = controller.base_url + '/douban-movie/' + db.id
     let res
@@ -411,7 +549,9 @@ async function showWant(wantRes) {
     let newNode = $(nodeHtml)
         .attr('style', style);
     if (!res.data.id) {
-        newNode = newNode.click(BdFileResource.makeTarget)
+        newNode = newNode.click(() => {
+            Resource.run()
+        })
     }
     wantRes.singleNodeValue.insertBefore(newNode[0], wantRes.singleNodeValue.firstChild)
 }
@@ -447,7 +587,6 @@ class Server {
             url: target.downloadLink,
             size: target.size || 0,
         });
-        dd('oo', params);
         try {
             let res = await req.getJson(controller.base_url + '/movie-resources', 'POST', params);
             if (!res.error) {
@@ -457,100 +596,6 @@ class Server {
         } catch (e) {
             dd('put to server error', e)
         }
-
-    }
-
-    /**
-     * @from 来源
-     * @url 下载所在详情页面
-     * @title 标题
-     * @size 大小
-     * @heat 热度
-     * @downloadLink 下载地址
-     */
-    static showResource() {
-        //todo 先实现一个缓存层
-        let style = `
-        #resource-doulist {
-            margin-bottom: 30px;
-
-        }
-    #resource-doulist > ul > li > div.title .from{
-   border: 2px solid #ddd;
-    padding: 1px 2px;
-    border-radius: 13%;
-    font-weight: 500;
-    color: #666; 
-    
-    }
-    
-        #resource-doulist > ul > li > div.title .size{
-    background: #FED49A;
-    font-size: 13px;
-    line-height: 13px;
-    padding: 2px;
-    color: #666;
-    border-radius: 12% 15%;
-    }
-    
-    #resource-doulist > ul > li > div.sbar {
-font: 12px Helvetica,Arial,sans-serif;
-    line-height: 1.62;
-    font-size: 13px;
-    color: #111;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content:left; 
-    align-items: center;
-    flex-flow: row;
-    border-bottom: 1px solid #eee;
-    margin: 4px 2px;
-}
-    #resource-doulist > ul > li > div.sbar span{
-    margin: 0 2px;
-}
-    `;
-
-        GM_addStyle(style);
-
-        let str = `<div id="resource-doulist"><h2><i class="">资源</i>· · · · · ·
-        <span class="pl">
-        (todo)
-        </span></h2><ul>
-    `;
-
-        let d
-        for (const index of targets.keys()) {
-            d = targets[index];
-            str += `
-            <li>
-            <div class="title">
-                <span class="from">${d.from}</span>
-                `
-            if (d.size) {
-                str += `<span class="size">${d.sizeText}</span>`
-            }
-            str += `
-            <a href="${d.url}">${d.title}</a>
-            </div>`;
-            str += `<div class="sbar">`;
-            str += `<span ><a class="put-to-server" data-index=${index}  href="javascript:void(0)">发送服务器</a></span>`
-            str += `<span><a href="${d.downloadLink}" target="_blank">下载地址</a></span>`
-
-            if (d.heat) {
-                str += `<span class="heat">热度：${d.heat}</span>`
-            }
-            str += '</div></li>'
-        }
-        str += `</ul></div>`;
-
-        $("#content > div.grid-16-8.clearfix > div.aside").prepend(str)
-        $('.put-to-server').click(function () {
-            let a = $(this).attr('data-index')
-            Server.putToServer(a);
-        })
     }
 
 }
@@ -561,8 +606,8 @@ font: 12px Helvetica,Arial,sans-serif;
  * ====================
  */
 let controller = {
-    // base_url: 'http://zqbinary.icu:8989',
-    base_url: 'http://farmer.tt',
+    base_url: 'http://zqbinary.icu:8989',
+    // base_url: 'http://farmer.tt',
     is_want: false,
     is_want_close: false,
 };
