@@ -375,20 +375,23 @@ font: 12px Helvetica,Arial,sans-serif;
             </div>`;
             str += `<div class="sbar">`;
             str += `<span ><a class="put-to-server" data-index=${index}  href="javascript:void(0)">发送服务器</a></span>`
-            str += `<span><a href="${d.downloadLink}" target="_blank">下载地址</a></span>`
+            str += `<!--<span><a href="${d.downloadLink}" target="_blank">下载地址</a></span>-->`
+            str += `<span><a class="put-to-clipboard" href="javascript::void(0);" data-href="${d.downloadLink}">复制</a></span>`
 
             if (d.heat) {
                 str += `<span class="heat">热度：${d.heat}</span>`
             }
             str += '</div></li>'
         }
-
         //resource-ul
-        dd('s', str)
         $("#resource-ul").html(str)
         $('.put-to-server').click(function () {
             let a = $(this).attr('data-index')
             Server.putToServer(a);
+        })
+        $('.put-to-clipboard').click(function () {
+            let a = $(this).attr('data-href')
+            GM_setClipboard(a);
         })
     }
 
@@ -420,11 +423,10 @@ font: 12px Helvetica,Arial,sans-serif;
     }
 
     static async run() {
-        dd('re run')
         Resource.init();
         //todo 后面再改
         await BdFileResource.request();
-        // Resource.sort();
+        Resource.sort();
         Resource.show();
     }
 }
