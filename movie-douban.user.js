@@ -293,6 +293,9 @@ async function getImdb() {
 class Resource {
 
     static init() {
+        if (document.getElementById('resource-doulist')) {
+            return;
+        }
         //todo 先实现一个缓存层
         let style = `
         #resource-doulist {
@@ -360,6 +363,10 @@ font: 12px Helvetica,Arial,sans-serif;
     static show() {
         let d, str = '';
         dd('aa', targets)
+        if (!targets.length) {
+            str = '<h6>没有相关资源</h6>';
+            $("#resource-ul").html(str)
+        }
         for (const index of targets.keys()) {
             d = targets[index];
             str += `
@@ -368,7 +375,7 @@ font: 12px Helvetica,Arial,sans-serif;
                 <span class="from">${d.from}</span>
                 `
             if (d.size) {
-                str += `<span class="size">${d.sizeText}</span>`
+                str += `<span class="size">${d.size}</span>`
             }
             str += `
             <a href="${d.url}">${d.title}</a>
@@ -399,26 +406,26 @@ font: 12px Helvetica,Arial,sans-serif;
         //100-900
         const sizeHander = (item) => {
             let size = (item.size || '').toLocaleLowerCase();
-            let sizeNumber = (size.includes('g')) ? parseFloat(item.size * 1000) : parseFloat(item.size);
+            let sizeNumber = (size.includes('m')) ? parseFloat(size) / 1000 : parseFloat(size);
             let score = 500;
-            if (!size || isNaN(sizeNumber)) {
-                return score;
-            }
-            //(1,500),(2,800),(3,900),(4,800),5(500)
-            score = -100 * sizeNumber * sizeNumber + 600 * sizeNumber;
-            if (score < 0) {
-                score = 100;
+            if (size && !isNaN(sizeNumber)) {
+                //(1,500),(2,800),(3,900),(4,800),5(500)
+                score = -100 * sizeNumber * sizeNumber + 600 * sizeNumber;
+                if (score < 0) {
+                    score = 100;
+                }
             }
             return score;
         };
-
-        for (let item of targets) {
+        let item
+        for (let i = 0; i < targets.length; i++) {
+            item = targets[i];
             item.score = 0;
             //size 2g  左右
             item.score += sizeHander(item);
         }
-        targets.some((a, b) => {
-            return a.score - b.score;
+        targets.sort((a, b) => {
+            return b.score - a.score;
         })
     }
 
@@ -427,6 +434,7 @@ font: 12px Helvetica,Arial,sans-serif;
         //todo 后面再改
         await BdFileResource.request();
         Resource.sort();
+        dd(targets);
         Resource.show();
     }
 }
@@ -479,8 +487,8 @@ class BdFileResource {
                         from: 'bd-file',
                         title,
                         url: href,
-                        size: size,
-                        sizeText: BdFileResource.formatSize(size),
+                        sizeNumber: size,
+                        size: BdFileResource.formatSize(size),
                         downloadLink: link,
                     }
                 );
@@ -591,7 +599,7 @@ class Server {
         });
         try {
             let res = await req.getJson(controller.base_url + '/movie-resources', 'POST', params);
-            if (!res.error) {
+            if (res.code < 400) {
                 Msg.showNotification('发送请求成功');
             }
             dd('get res', res);
