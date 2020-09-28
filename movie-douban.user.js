@@ -144,7 +144,7 @@ function clearExpiredCacheValue(force) {
 
 
 function dd(...arr) {
-    console.log(arr)
+    console.log(...arr)
 }
 
 
@@ -166,7 +166,7 @@ class Msg {
     static showNotification(content, callback = null) {
         GM_notification({
             text: content,
-            timeout: 3000,
+            // timeout: 3000,
         }, callback)
     }
 }
@@ -206,7 +206,7 @@ class req {
                     data += key + '=' + encodeURIComponent(params[key]);
                 }
             }
-            dd('debug', url, data, method)
+            // dd('debug', url, data, method)
             GM_xmlhttpRequest({
                 method: method,
                 url,
@@ -223,7 +223,7 @@ class req {
                     try {
                         resolve(JSON.parse(response.responseText))
                     } catch (e) {
-                        dd('解析失败：', response)
+                        dd('解析失败：', response.responseText)
                         Msg.showNotification('解析失败')
                         reject('解析失败', response)
                     }
@@ -394,7 +394,7 @@ font: 12px Helvetica,Arial,sans-serif;
         $("#resource-ul").html(str)
         $('.put-to-server').click(function () {
             let a = $(this).attr('data-index')
-            Server.putToServer(a);
+            return Server.putToServer(a);
         })
         $('.put-to-clipboard').click(function () {
             let a = $(this).attr('data-href')
@@ -436,6 +436,19 @@ font: 12px Helvetica,Arial,sans-serif;
         Resource.sort();
         dd(targets);
         Resource.show();
+    }
+
+    static async markGot() {
+        let params = {
+            douban_id: db.id,
+            douban_name: db.title
+        };
+        let res = await req.getJson(controller.base_url + '/douban-movie-got', 'POST', params);
+        dd('get res', res);
+        if (res.code < 400) {
+            return Msg.showMsg(res.msg);
+        }
+        dd('get res', res);
     }
 }
 
@@ -549,7 +562,13 @@ async function showWant(wantRes) {
     }
     let nodeHtml = '';
     let style = `cursor:pointer;letter-spacing:3px;overflow:hidden;color:#000;display:block;font:normal 12px sans-serif;margin-right:10px;border:1px solid #ddd;width:3rem;float:left;text-align:center;border-radius:10%;`;
-    if (res.data.id) {
+    let newNode2 = $('<span>GOT</span>')
+        .attr('style', style)
+        .click(() => {
+            Resource.markGot()
+        })
+
+    if (res.code < 400) {
         nodeHtml = '<span>有了</span>';
         style += 'color:green;'
     } else {
@@ -558,12 +577,12 @@ async function showWant(wantRes) {
     }
     let newNode = $(nodeHtml)
         .attr('style', style);
-    if (!res.data.id) {
-        newNode = newNode.click(() => {
-            Resource.run()
-        })
-    }
+    newNode = newNode.click(() => {
+        Resource.run()
+    });
+
     wantRes.singleNodeValue.insertBefore(newNode[0], wantRes.singleNodeValue.firstChild)
+    wantRes.singleNodeValue.insertBefore(newNode2[0], wantRes.singleNodeValue.firstChild)
 }
 
 function cssInit() {
@@ -600,7 +619,7 @@ class Server {
         try {
             let res = await req.getJson(controller.base_url + '/movie-resources', 'POST', params);
             if (res.code < 400) {
-                Msg.showNotification('发送请求成功');
+                return Msg.showMsg(res.msg);
             }
             dd('get res', res);
         } catch (e) {
