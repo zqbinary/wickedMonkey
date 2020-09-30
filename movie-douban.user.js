@@ -251,41 +251,32 @@ async function getImdb() {
 <div class="rating_wrap clearbox rating_anidb" rel="v:rating" style="border-top: 1px solid #eaeaea; display:none"></div>
 <div class="rating_more" style="display:none"></div>`); // 修复部分情况$("div.rating_betterthan")不存在情况
 
-    let imdbUrl = document.evaluate('//*[@id="info"]/a', document.documentElement, null, XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue.href;
-    let doc = await req.getDom(imdbUrl);
-    let rating_more = $('#interest_sectl .rating_more');
-    let imdb_link, imdb_id, imdb_average_rating, imdb_votes, imdb_rating;
-    if ($("div.txt-block:contains('Motion Picture Rating')", doc).text().length > 0) {
-        let mpaaText = $("div.txt-block:contains('Motion Picture Rating')", doc).text().trim().replace(/\n/g, '').replace(/^.*Rated /, '').replace(/ .*$/, '')
-        let mpaa = mpaaText.replace(/^G$/, '大众级 | 全年龄').replace(/^PG$/, '指导级 | ≥6岁').replace(/^PG-13$/, '特指级 | ≥13岁').replace(/^NC-17$/, '限定级 | ≥17岁').replace(/^R$/, '限制级 | ≥18岁');
-        //todo float
-        rating_more.append(`<div>分级<a href='${imdb_link + 'parentalguide?ref_=tt_stry_pg#certification'}' style="margin-left:-35px" target="_blank" data-zh="${mpaa}">${mpaaText}</a></div>`);
-    }
-    if ($("div.txt-block:contains('Budget:')", doc).text().length > 0) {
-        let budget = $("div.txt-block:contains('Budget:')", doc).text().trim().replace(/\n/g, '').replace(/ .*$/, '').replace(/^Budget:/, '').replace(/CNY./, '¥').replace(/KRW./, '₩').replace(/JPY./, '円').replace(/HKD./, '港');
-        rating_more.append(`<div>总成本<a href='${imdb_link + '?rf=cons_tt_bo_tt&ref_=cons_tt_bo_tt'}' style="margin-left:-35px" target="_blank">${budget}</a></div>`);
-    }
-    if ($("div.txt-block:contains('Opening Weekend:'):not(:contains('USA:'))", doc).text().length > 0) {
-        let opening = $("div.txt-block:contains('Opening Weekend:'):not(:contains('USA:'))", doc).text().trim().replace(/\n/g, '').replace(/^Opening Weekend:/, '').replace(/ \(.*$/, '').replace(/CNY./, '¥').replace(/KRW./, '₩').replace(/JPY./, '円').replace(/HKD./, '港');
-        rating_more.append(`<div>本首周<a href='${imdb_link + '?rf=cons_tt_bo_tt&ref_=cons_tt_bo_tt'}' style="margin-left:-35px" target="_blank">${opening}</a></div>`);
-    }
-    if ($("div.txt-block:contains('Opening Weekend USA:')", doc).text().length > 0) {
-        let openingusa = $("div.txt-block:contains('Opening Weekend USA:')", doc).text().trim().replace(/\n/g, '').replace(/^Opening Weekend USA:/, '').replace(/,\d+ .*$/, '');
-        rating_more.append(`<div>美首周<a href='${imdb_link + '?rf=cons_tt_bo_tt&ref_=cons_tt_bo_tt'}' style="margin-left:-35px" target="_blank">${openingusa}</a></div>`);
-    }
-    if ($("div.txt-block:contains('Gross USA:')", doc).text().length > 0) {
-        let gross = $("div.txt-block:contains('Gross USA:')", doc).text().trim().replace(/\n/g, '').replace(/^Gross USA:/, '').replace(/\, \d+ .*$/, '');
-        rating_more.append(`<div>美票房<a href='${imdb_link + '?rf=cons_tt_bo_tt&ref_=cons_tt_bo_tt'}' style="margin-left:-35px" target="_blank">${gross}</a></div>`);
-    }
-    if ($("div.txt-block:contains('Cumulative Worldwide Gross:')", doc).text().length > 0) {
-        let cumulative = $("div.txt-block:contains('Cumulative Worldwide Gross:')", doc).text().trim().replace(/\n/g, '').replace(/^Cumulative Worldwide Gross:/, '').replace(/\, \d+ .*$/, '');
-        rating_more.append(`<div>总票房<a href='${imdb_link + '?rf=cons_tt_bo_tt&ref_=cons_tt_bo_tt'}' style="margin-left:-35px" target="_blank">${cumulative}</a></div>`);
-    }
-    if ($("div.txt-block:contains('Aspect Ratio:')", doc).text().length > 0) {
-        let aspect = $("div.txt-block:contains('Aspect Ratio:')", doc).text().trim().replace(/\n/g, '').replace(/^Aspect Ratio:/, '');
-        rating_more.append(`<div>宽高比<a href='${imdb_link + 'technical?ref_=tt_dt_spec'}' style="margin-left:-35px" target="_blank">${aspect}</a></div>`);
-    }
+    let imdbDom = document.evaluate('//*[@id="info"]/a', document.documentElement, null, XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue;
+    let imdbUrl = imdbDom.href;
 
+    let imdb_key = 'imdb_' + imdbDom.text;
+    let imdb = {
+        mpaa: '',
+        mpaaText: '未收录imdb'
+    }
+    let cached = cache.get(imdb_key)
+
+    let rating_more = $('#interest_sectl .rating_more');
+    if (!cached || !cached.mpaa) {
+        let doc = await req.getDom(imdbUrl);
+        if ($("div.txt-block:contains('Motion Picture Rating')", doc).text().length > 0) {
+            imdb.mpaaText = $("div.txt-block:contains('Motion Picture Rating')", doc).text()
+                .trim().replace(/\n/g, '').replace(/^.*Rated /, '')
+                .replace(/ .*$/, '')
+            imdb.mpaa = imdb.mpaaText.replace(/^G$/, '大众级 | 全年龄').replace(/^PG$/, '指导级 | ≥6岁')
+                .replace(/^PG-13$/, '特指级 | ≥13岁').replace(/^NC-17$/, '限定级 | ≥17岁')
+                .replace(/^R$/, '限制级 | ≥18岁');
+        }
+        cache.add(imdb_key, imdb);
+    } else {
+        imdb = cached;
+    }
+    rating_more.append(`<div>分级<a href='${imdbUrl + 'parentalguide?ref_=tt_stry_pg#certification'}' style="margin-left:-35px" target="_blank" data-zh="${imdb.mpaa}">${imdb.mpaaText}</a></div>`);
     rating_more.show();
     $("#loading_more_rate").hide();
 }
@@ -590,7 +581,7 @@ function cssInit() {
     /*todo test*/
     const style = `
 #interest_sectl {
-    height:500px;
+    height:300px;
 }
 .c-aside {
 }
@@ -666,6 +657,6 @@ async function main() {
     }
 }
 
-// getImdb();
+getImdb();
 
 main();
