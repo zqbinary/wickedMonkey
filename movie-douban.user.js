@@ -149,15 +149,22 @@ function dd(...arr) {
 
 
 class Msg {
-    static showMsg(msg) {
-        $('#content > h1').append('<span id="show-color" style="color: #666;\n' +
+    static showMsg(msg, type = 'info') {
+        let content = '<span id="show-color" style="'
+        if ('info' === type) {
+            content += '    color: #666;\n'
+        } else if ('error' === type) {
+            content += '    color: #c21020;\n'
+        }
+        content +=
             '    font-size: 14px;\n' +
             '    text-align: right;\n' +
             '    display: inline-block;\n' +
             '    float: right;\n' +
             '    font-weight: 200;\n' +
             '    border: 1px solid #256d38;\n' +
-            '    padding: 3px;">' + msg + '</span>')
+            '    padding: 3px;">' + msg + '</span>'
+        $('#content > h1').append(content)
         setTimeout(() => {
             $('#show-color').remove();
         }, 4000)
@@ -193,7 +200,7 @@ class req {
         let msg;
         method = method.toUpperCase();
         return new Promise((resolve, reject) => {
-            let headers = {Accept: 'application/json'}
+            let headers = { Accept: 'application/json' }
             let data = '';
             if (method === 'POST') {
                 headers = Object.assign(headers, {
@@ -244,6 +251,7 @@ class req {
 }
 
 async function getImdb() {
+    dd('start imdb')
     // 中栏加强
     $("div#interest_sectl").append(`<div class='rating_wrap clearbox' id='loading_more_rate'>加载第三方评价信息中.......</div>
 <div class="rating_wrap clearbox rating_imdb" rel="v:rating" style="display:none"></div>
@@ -257,10 +265,10 @@ async function getImdb() {
     let imdb_key = 'imdb_' + imdbDom.text;
     let imdb = {
         mpaa: '',
-        mpaaText: '未收录imdb'
+        mpaaText: '未评级'
     }
     let cached = cache.get(imdb_key)
-
+    dd('get cached', cached)
     let rating_more = $('#interest_sectl .rating_more');
     if (!cached || !cached.mpaa) {
         let doc = await req.getDom(imdbUrl);
@@ -335,7 +343,7 @@ font: 12px Helvetica,Arial,sans-serif;
 
         let str = `<div id="resource-doulist"><h2><i class="">资源</i>· · · · · ·
         <span class="pl">
-        (todo)
+        <a href="http://yc.ionewu.com/" target="_blank">去看看</a>
         </span></h2><ul id="resource-ul">
     `;
         str += `</ul></div>`;
@@ -369,7 +377,7 @@ font: 12px Helvetica,Arial,sans-serif;
                 str += `<span class="size">${d.size}</span>`
             }
             str += `
-            <a href="${d.url}">${d.title}</a>
+            <a href="${d.url}" target="_blank">${d.title}</a>
             </div>`;
             str += `<div class="sbar">`;
             str += `<span ><a class="put-to-server" data-index=${index}  href="javascript:void(0)">发送服务器</a></span>`
@@ -456,7 +464,7 @@ class BdFileResource {
     static async request() {
         let m = {
             name: 'BD影视',
-            link: 'https://www.bd-film.cc/search.jspx?q=' + db.title,
+            link: 'https://www.bd2020.com/search.jspx?q=' + db.title,
             xpathList: '//*[@id="content_list"]//li/div/a',
         }
         let dom = await req.getDom(m.link)
@@ -481,20 +489,20 @@ class BdFileResource {
             return;
         }
         for (const item of urlDetails) {
-            let {href, title} = item;
+            let { href, title } = item;
             let dom = await req.getDom(href)
             let downloadLinks = BdFileResource.bdHandler(dom)
             let size;
             for (let link of downloadLinks) {
                 size = BdFileResource.getSize(link)
                 targets.push({
-                        from: 'bd-file',
-                        title,
-                        url: href,
-                        sizeNumber: size,
-                        size: BdFileResource.formatSize(size),
-                        downloadLink: link,
-                    }
+                    from: 'bd-file',
+                    title,
+                    url: href,
+                    sizeNumber: size,
+                    size: BdFileResource.formatSize(size),
+                    downloadLink: link,
+                }
                 );
             }
         }
@@ -589,7 +597,7 @@ function cssInit() {
 }
 `
     GM_addStyle(style);
-    let myScriptStyle = "@charset utf-8;#dale_movie_subject_top_right,#dale_movie_subject_top_right,#dale_movie_subject_top_midle,#dale_movie_subject_middle_right,#dale_movie_subject_bottom_super_banner,#footer,#dale_movie_subject_download_middle,#dale_movie_subject_inner_middle,#movie_home_left_bottom,#dale_movie_home_top_right,#dale_movie_home_side_top,#dale_movie_home_bottom_right,#dale_movie_home_inner_bottom,#dale_movie_home_download_bottom,#dale_movie_home_bottom_right_down,#dale_movie_towhome_explore_right,#dale_movie_chart_top_right,#dale_movie_tags_top_right,#dale_review_best_top_right,.mobile-app-entrance.block5.app-movie,.qrcode-app,.top-nav-doubanapp,.extra,div.gray_ad,p.pl,div.ticket{display:none}.c-aside{margin-bottom:30px}.c-aside-body{*letter-spacing:normal}.c-aside-body a{border-radius:6px;color:#37A;display:inline-block;letter-spacing:normal;margin:0 8px 8px 0;padding:0 8px;text-align:center;width:65px}.c-aside-body a:link,.c-aside-body a:visited{background-color:#f5f5f5;color:#37A}.c-aside-body a:hover,.c-aside-body a:active{background-color:#e8e8e8;color:#37A}.c-aside-body a.available{background-color:#5ccccc;color:#006363}.c-aside-body a.available:hover,.c-aside-body a.available:active{background-color:#3cc}.c-aside-body a.sites_r0{text-decoration:line-through}#c_dialog li{margin:10px}#c_dialog{text-align:center}#interest_sectl .rating_imdb{border-top:1px solid #eaeaea;border-bottom:1px solid #eaeaea;padding-bottom:0}#interest_sectl .rating_wrap{padding-top:15px}#interest_sectl .rating_more{border-bottom:1px solid #eaeaea;color:#9b9b9b;margin:0;padding:15px 0;position:relative}#interest_sectl .rating_more a{left:80px;position:absolute}#interest_sectl .rating_more .titleOverviewSprite{background:url(https://coding.net/u/Changhw/p/MyDoubanMovieHelper/git/raw/master/title_overview_sprite.png) no-repeat;display:inline-block;vertical-align:middle}#interest_sectl .rating_more .popularityImageUp{background-position:-14px -478px;height:8px;width:8px}#interest_sectl .rating_more .popularityImageDown{background-position:-34px -478px;height:8px;width:8px}#interest_sectl .rating_more .popularityUpOrFlat{color:#83c40b}#interest_sectl .rating_more .popularityDown{color:#930e02}.more{display:block;height:34px;line-height:34px;text-align:center;font-size:14px;background:#f7f7f7}div#drdm_setting input[type=checkbox]{display:none}div#drdm_setting input[type=checkbox]+label{display:inline-block;width:40px;height:20px;position:relative;transition:.3s;margin:0 20px;box-sizing:border-box;background:#ddd;border-radius:20px;box-shadow:1px 1px 3px #aaa}div#drdm_setting input[type=checkbox]+label:after,div#drdm_setting input[type=checkbox]+label:before{content:'';display:block;position:absolute;left:0;top:0;width:20px;height:20px;transition:.3s;cursor:pointer}div#drdm_setting input[type=checkbox]+label:after{background:#fff;border-radius:50%;box-shadow:1px 1px 3px #aaa}div#drdm_setting input[type=checkbox]:checked+label{background:#aedcae}div#drdm_setting input[type=checkbox]:checked+label:after{background:#5cb85c;left:calc(100% - 20px)}.top250{background:url(https://s.doubanio.com/f/movie/f8a7b5e23d00edee6b42c6424989ce6683aa2fff/pics/movie/top250_bg.png) no-repeat;width:150px;margin-right:5px;font:12px Helvetica,Arial,sans-serif;margin:5px 0;color:#744900}.top250 span{display:inline-block;text-align:center;height:18px;line-height:18px}.top250 a,.top250 a:link,.top250 a:hover,.top250 a:active,.top250 a:visited{color:#744900;text-decoration:none;background:0}.top250-no{width:34%}.top250-link{width:66%}.drdm-dl-horizontal dt{float:left;width:160px;overflow:hidden;clear:left;text-align:right;text-overflow:ellipsis;white-space:nowrap}.drdm-dl-horizontal dd{margin-left:180px}";
+    let myScriptStyle = "@charset utf-8;#dale_movie_subject_top_right,#dale_movie_subject_top_right,#dale_movie_subject_top_midle,#dale_movie_subject_middle_right,#dale_movie_subject_bottom_super_banner,#footer,#dale_movie_subject_download_middle,#dale_movie_subject_inner_middle,#movie_home_left_bottom,#dale_movie_home_top_right,#dale_movie_home_side_top,#dale_movie_home_bottom_right,#dale_movie_home_inner_bottom,#dale_movie_home_download_bottom,#dale_movie_home_bottom_right_down,#dale_movie_towhome_explore_right,#dale_movie_chart_top_right,#dale_movie_tags_top_right,#dale_review_best_top_right,.mobile-app-entrance.block5.app-movie,.qrcode-app,.top-nav-doubanapp,.extra,div.gray_ad,p.pl,div.ticket{display:block}.c-aside{margin-bottom:30px}.c-aside-body{*letter-spacing:normal}.c-aside-body a{border-radius:6px;color:#37A;display:inline-block;letter-spacing:normal;margin:0 8px 8px 0;padding:0 8px;text-align:center;width:65px}.c-aside-body a:link,.c-aside-body a:visited{background-color:#f5f5f5;color:#37A}.c-aside-body a:hover,.c-aside-body a:active{background-color:#e8e8e8;color:#37A}.c-aside-body a.available{background-color:#5ccccc;color:#006363}.c-aside-body a.available:hover,.c-aside-body a.available:active{background-color:#3cc}.c-aside-body a.sites_r0{text-decoration:line-through}#c_dialog li{margin:10px}#c_dialog{text-align:center}#interest_sectl .rating_imdb{border-top:1px solid #eaeaea;border-bottom:1px solid #eaeaea;padding-bottom:0}#interest_sectl .rating_wrap{padding-top:15px}#interest_sectl .rating_more{border-bottom:1px solid #eaeaea;color:#9b9b9b;margin:0;padding:15px 0;position:relative}#interest_sectl .rating_more a{left:80px;position:absolute}#interest_sectl .rating_more .titleOverviewSprite{background:url(https://coding.net/u/Changhw/p/MyDoubanMovieHelper/git/raw/master/title_overview_sprite.png) no-repeat;display:inline-block;vertical-align:middle}#interest_sectl .rating_more .popularityImageUp{background-position:-14px -478px;height:8px;width:8px}#interest_sectl .rating_more .popularityImageDown{background-position:-34px -478px;height:8px;width:8px}#interest_sectl .rating_more .popularityUpOrFlat{color:#83c40b}#interest_sectl .rating_more .popularityDown{color:#930e02}.more{display:block;height:34px;line-height:34px;text-align:center;font-size:14px;background:#f7f7f7}div#drdm_setting input[type=checkbox]{display:none}div#drdm_setting input[type=checkbox]+label{display:inline-block;width:40px;height:20px;position:relative;transition:.3s;margin:0 20px;box-sizing:border-box;background:#ddd;border-radius:20px;box-shadow:1px 1px 3px #aaa}div#drdm_setting input[type=checkbox]+label:after,div#drdm_setting input[type=checkbox]+label:before{content:'';display:block;position:absolute;left:0;top:0;width:20px;height:20px;transition:.3s;cursor:pointer}div#drdm_setting input[type=checkbox]+label:after{background:#fff;border-radius:50%;box-shadow:1px 1px 3px #aaa}div#drdm_setting input[type=checkbox]:checked+label{background:#aedcae}div#drdm_setting input[type=checkbox]:checked+label:after{background:#5cb85c;left:calc(100% - 20px)}.top250{background:url(https://s.doubanio.com/f/movie/f8a7b5e23d00edee6b42c6424989ce6683aa2fff/pics/movie/top250_bg.png) no-repeat;width:150px;margin-right:5px;font:12px Helvetica,Arial,sans-serif;margin:5px 0;color:#744900}.top250 span{display:inline-block;text-align:center;height:18px;line-height:18px}.top250 a,.top250 a:link,.top250 a:hover,.top250 a:active,.top250 a:visited{color:#744900;text-decoration:none;background:0}.top250-no{width:34%}.top250-link{width:66%}.drdm-dl-horizontal dt{float:left;width:160px;overflow:hidden;clear:left;text-align:right;text-overflow:ellipsis;white-space:nowrap}.drdm-dl-horizontal dd{margin-left:180px}";
     GM_addStyle(myScriptStyle)
 }
 
@@ -611,8 +619,9 @@ class Server {
             let res = await req.getJson(controller.base_url + '/movie-resources', 'POST', params);
             if (res.code < 400) {
                 return Msg.showMsg(res.msg);
+            } else {
+                return Msg.showMsg(res.msg, 'error');
             }
-            dd('get res', res);
         } catch (e) {
             dd('put to server error', e)
         }
@@ -626,7 +635,7 @@ class Server {
  * ====================
  */
 let controller = {
-    base_url: 'http://zqbinary.icu:8989',
+    base_url: 'http://zqbinary.fun:8989',
     // base_url: 'http://farmer.tt',
     is_want: false,
     is_want_close: false,
@@ -658,5 +667,4 @@ async function main() {
 }
 
 getImdb();
-
 main();
