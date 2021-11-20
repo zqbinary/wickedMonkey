@@ -54,6 +54,10 @@
         GM_setClipboard(listValue, 'html')
     }
 
+    function handleBui() {
+        const check = document.querySelector('.bui-switch-input');
+        check.checked = !check.checked;
+    }
     function register() {
 
         const btn = document.createElement('button')
@@ -69,7 +73,15 @@
             cp2()
         })
         document.querySelector('.head-right').insertBefore(btn, document.querySelector('.next-button'))
-    }
 
-    setTimeout(register, 1000)
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'F4') {
+                handleBui();
+            }
+        }, true)
+    }
+    onload = function () {
+        setTimeout(register, 1000)
+
+    }
 })()
