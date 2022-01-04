@@ -2,10 +2,9 @@
 // @name        bilibili 菜单 格式化
 // @namespace   Violentmonkey Scripts
 // @match       https://www.bilibili.com/video/*
-// @require  https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js
 // @grant GM_setClipboard
 // @version     1.0
-// @author      -
+// @author      zqbinary
 // @description 2021/11/5 下午2:21:51
 // ==/UserScript==
 (function () {
@@ -13,6 +12,7 @@
 
     let listValue = ''
 
+    let duration = 0
     function getLessonList() {
         const listSelect = '.list-box a'
         const listsDom = document.querySelectorAll(listSelect);
@@ -23,6 +23,7 @@
             lesson.title = item.title;
             lesson.p = item.querySelector('.page-num').innerText;
             lesson.duration = item.querySelector('.duration').innerText;
+            duration += parseInt(lesson.duration)
             lesson.url = item.href
             if (!item.href.includes('http')) {
                 lesson.url = 'https://www.bilibili.com/' + lesson.href
@@ -54,10 +55,18 @@
         GM_setClipboard(listValue, 'html')
     }
 
-    function handleBui() {
-        const check = document.querySelector('.bui-switch-input');
-        check.click();
+
+    function addDuration(btn) {
+        let text = ''
+        let hour = duration / 60;
+        if (hour > 1) {
+            text = parseInt(hour) + 'h,' + duration % 60 + 'min'
+        } else {
+            text = duration
+        }
+        btn.title = text;
     }
+
     function register() {
 
         const btn = document.createElement('button')
@@ -66,19 +75,16 @@
             const lists = getLessonList()
             makeLessonDoms(lists)
             cp()
+            addDuration(btn)
         })
         btn.addEventListener('dblclick', () => {
             const lists = getLessonList()
             makeLessonDoms(lists)
             cp2()
+            addDuration(btn)
         })
         document.querySelector('.head-right').insertBefore(btn, document.querySelector('.next-button'))
 
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'F4') {
-                handleBui();
-            }
-        }, true)
     }
     onload = function () {
         setTimeout(register, 1000)
