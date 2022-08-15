@@ -12,11 +12,12 @@
 
 (function () {
     'use strict';
+    const host = location.host
+
     setInterval(function () {
         redirect();
-    }, 300);
+    }, 800);
 
-    const host = location.host
 
     function redirect() {
         switch (host) {
