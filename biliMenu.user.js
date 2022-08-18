@@ -8,7 +8,7 @@
 // @grant       GM_setClipboard
 // @grant       GM_registerMenuCommand
 // @grant       GM_notification
-// @icon         https://raw.githubusercontent.com/zqbinary/icons/53cb0c68ee5fbd05a1719e52b4e544ed5e9f5341/menu_format.png
+// @icon         https://raw.githubusercontent.com/zqbinary/wickedMonkey/master/icons/menu_format.png
 // ==/UserScript==
 (function () {
 
