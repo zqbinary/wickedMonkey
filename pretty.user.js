@@ -2,13 +2,14 @@
 // @name         去广告和格式化
 // @namespace    http://tampermonkey.net/
 // @version      1.1
-// @description  去掉简书热门故事
+// @description  各种网页美化
 // @author       宁西西
 // @match        https://baomidou.com/*
 // @match        https://segmentfault.com/*
 // @match        https://segmentfault.com/a/1190000040335988
 // @match        https://router.vuejs.org/*
 // @match        https://www.jianshu.com/p/*
+// @match        https://juejin.cn/post/*
 // @grant        GM_addStyle
 // @icon         https://raw.githubusercontent.com/zqbinary/wickedMonkey/master/icons/format.png
 // @run-at       document-idle
@@ -49,6 +50,10 @@
                 GM_addStyle('#__next > div._21bLU4._3kbg6I > div > aside > div{display:none !important}')
                 break;
 
+            case 'juejin.cn':
+                //去掉代码number
+                GM_addStyle('.hljs-number{display:none !important;}')
+                break;
         }
     }
 
