@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         去广告和格式化
+// @name         阅读增强
 // @namespace    http://tampermonkey.net/
-// @version      1.1
-// @description  各种网页美化
+// @version      2.0
+// @description  去广告，格式化，菜单复制
 // @author       宁西西
 // @match        https://baomidou.com/*
 // @match        https://segmentfault.com/*
@@ -11,6 +11,9 @@
 // @match        https://www.jianshu.com/p/*
 // @match        https://juejin.cn/post/*
 // @grant        GM_addStyle
+// @grant        GM_setClipboard
+// @grant        GM_notification
+// @grant        GM_registerMenuCommand
 // @icon         https://raw.githubusercontent.com/zqbinary/wickedMonkey/master/icons/format.png
 // @run-at       document-idle
 // ==/UserScript==
@@ -58,5 +61,28 @@
     }
 
     setTimeout(handler, 801);
+    function collectMenu() {
+        let arr = [];
+        document.querySelectorAll("toc outline").forEach(item=>{
+            let level= item.className.slice(-1) || 1
+            level--
+            let content = ''.padEnd(level*2,' ') + item.innerText
 
+            //h1 多空一行
+            if(level===0) {
+                arr.push('*************')
+                arr.push(content)
+                arr.push('*************')
+            } else {
+                arr.push(content)
+
+            }
+        })
+        if(!arr.length) {
+            return GM_notification("请配合简悦食用，打开菜单")
+        }
+        GM_setClipboard(arr.join('\n'))
+    }
+
+    GM_registerMenuCommand("复制菜单",collectMenu)
 })();
