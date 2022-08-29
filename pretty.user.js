@@ -10,6 +10,7 @@
 // @match        https://router.vuejs.org/*
 // @match        https://www.jianshu.com/p/*
 // @match        https://juejin.cn/post/*
+// @match        https://blog.csdn.net/*/article/details/*
 // @grant        GM_addStyle
 // @grant        GM_setClipboard
 // @grant        GM_notification
@@ -57,6 +58,9 @@
                 //去掉代码number
                 GM_addStyle('.hljs-number{display:none !important;}')
                 break;
+            case 'blog.csdn.net':
+                GM_addStyle('.hljs-ln-numbers{display:none !important}')
+                break
         }
     }
 
