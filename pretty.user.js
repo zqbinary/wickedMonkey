@@ -15,7 +15,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_notification
 // @grant        GM_registerMenuCommand
-// @icon         https://raw.githubusercontent.com/zqbinary/wickedMonkey/master/icons/format.png
+// @icon         https://raw.githubusercontent.com/zqbinary/wickedMonkey/master/icons/pretty.png
 // @run-at       document-idle
 // ==/UserScript==
 
