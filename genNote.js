@@ -15,8 +15,8 @@ try {
 }
 //todo 如果是文件夹，下面的html,排除 _n_
 const BR = `<div><br></div>`
-const BLOCK_START = `<table style=border-collapse:collapse;min-width:100%><col style=width:926px><col style=width:413px>`;
-const TR_START = `<tr><td style="width:926px;padding:8px;border:1px solid">`
+const BLOCK_START = `<table style=border-collapse:collapse;min-width:100%><col style=width:839px><col style=width:413px>`;
+const TR_START = `<tr><td style="width:839px;padding:8px;border:1px solid">`
 const TR_END = `</td><td style="width: 413px; padding: 8px; border: 1px solid;"><div><br /></div></td>`
 const BLOCK_END = `</tr></tbody></table>`
 const TARGET_DIR = path.join(ORIGIN_INFO['dir'], '')
