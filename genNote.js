@@ -139,6 +139,7 @@ class FormatEngine {
         for (let i = separators.length - 1; i >= 0; i--) {
             let separator = separators[i];
             [content, block] = content.split(separator)
+            separator += ':'
             blocks.unshift(separator + block);
         }
         return blocks;
@@ -164,7 +165,8 @@ class FormatEngine {
             separator += '<div>正文:</div>'
             blockContent = BLOCK_START + TR_START
             if (i === 0) {
-                blockContent += content + TR_END
+                blockContent += TR_END + BLOCK_END + BR + BLOCK_START + TR_START
+                    + content + TR_END
                     + BLOCK_END + BR + BLOCK_START
                     + TR_START + separator + TR_END
                     + this.handleH3(block)
