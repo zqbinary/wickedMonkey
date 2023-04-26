@@ -19,7 +19,6 @@ try {
     process.exit()
 }
 
-//todo 如果是文件夹，下面的html,排除 _n_
 const BR = `<div><br></div>`
 const BLOCK_START = `<table style=border-collapse:collapse;min-width:100%><col style=width:839px><col style=width:413px>`;
 const TR_START = `<tr><td style="width:839px;padding:8px;border:1px solid">`
@@ -28,8 +27,6 @@ const BLOCK_END = `</tr></tbody></table>`
 
 
 class SearchEngine {
-
-
     filesArr = []
 
     constructor(inputPath) {
@@ -42,7 +39,6 @@ class SearchEngine {
             this.filesArr = this.fileDisplay(inputPath, this.filesArr);
         }
     }
-
 
     fileDisplay(dir, filesArr) {
         if (!fs.statSync(dir).isDirectory()) {
@@ -85,13 +81,10 @@ class SearchEngine {
 }
 
 class FormatEngine {
-
-
     fileInfo;
     filepath;
 
     constructor(filepath) {
-        console.log(filepath)
         this.filepath = filepath
         try {
             this.fileInfo = path.parse(filepath)
@@ -119,7 +112,11 @@ class FormatEngine {
         let content = fs.readFileSync(this.filepath, 'utf-8')
         const bodyReq = /<body[^>]*>(.*)<\/body>/s
         //取body
-        content = (bodyReq.exec(content))[1]
+        try {
+            content = (bodyReq.exec(content))[1]
+        } catch (e) {
+            console.error("解析body失败", this.filepath)
+        }
         //替换带格式的代码
         content = content.replace(/<pre.*?>/igs, '<div>')
         content = content.replaceAll('</pre>', '</div>')
@@ -191,7 +188,7 @@ class FormatEngine {
         console.info("输出文件：", filePath)
     }
 
-//对block,h3 进行处理
+    //对block,h3 进行处理
     handleH3(h3Content) {
         const blockReq = /<h3(.+?)<\/h3>/g
         let separators = h3Content.match(blockReq) || []
