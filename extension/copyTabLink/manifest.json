@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "复制标题链接",
+  "version": "1.1",
+  "description": "在右键菜单中添加复制标题链接功能",
+  "permissions": [
+    "clipboardWrite",
+    "contextMenus",
+    "tabs",
+    "commands",
+    "notifications"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "js": [
+        "content.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "commands": {
+    "copyLink": {
+      "suggested_key": {
+        "default": "Alt+T",
+        "mac": "Alt+T"
+      },
+      "description": "复制标题链接"
+    }
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
