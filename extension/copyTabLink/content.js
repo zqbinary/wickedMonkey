@@ -6,13 +6,13 @@ async function copyLink(link) {
 
 
 chrome.runtime.onMessage.addListener(async function (message, sender, sendResponse) {
+    //一定要回应，不然报错:
+    //Unchecked runtime.lastError: The message port closed before a response was received.
     sendResponse("received")
     copyLink(message.value).then(() => {
-        sendResponse("ok")
         console.log('pasted')
     }).catch(
         (error) => {
-            sendResponse("fail:")
             console.log('not pasted', error)
         }
     )
