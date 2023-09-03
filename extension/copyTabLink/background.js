@@ -1,7 +1,9 @@
-chrome.contextMenus.create({
-    type: 'normal',
-    title: '复制标题链接',
-    id: 'menu-1'
+chrome.runtime.onInstalled.addListener(function() {
+    chrome.contextMenus.create({
+        type: 'normal',
+        title: '复制标题链接',
+        id: 'menu-1'
+    });
 });
 chrome.commands.onCommand.addListener(function (command) {
     if (command === "copyLink") {
