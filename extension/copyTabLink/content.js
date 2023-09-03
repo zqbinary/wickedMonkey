@@ -23,7 +23,9 @@ async function copyLink(link) {
     return new Promise((res, rej) => {
         // 执行复制命令并移除文本框
         document.execCommand('copy') ? res() : rej()
-        textArea.remove()
+
+        selection.removeAllRanges();
+        document.body.removeChild(richTextElement);
     })
 
 
