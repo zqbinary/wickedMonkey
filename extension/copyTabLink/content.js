@@ -46,49 +46,12 @@ function getImageBlob(url, callback) {
 // 将图像 Blob 复制到剪贴板
 function copyImageBlobToClipboard(blob) {
     navigator.clipboard.write([
-        new ClipboardItem({ "image/png": blob }) // 将 Blob 添加到 ClipboardItem 中
-    ]).then(function() {
+        new ClipboardItem({"image/png": blob}) // 将 Blob 添加到 ClipboardItem 中
+    ]).then(function () {
         console.log("已成功复制图像 Blob 到剪贴板");
-    }).catch(function(error) {
+    }).catch(function (error) {
         console.error("复制图像 Blob 到剪贴板失败：", error);
     });
-}
-
-function handleCopyImg(imageUrl) {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-
-    // canvas.width = 100
-    // canvas.height = 100
-    img.crossOrigin = "Anonymous";
-    img.src = imageUrl;
-
-    img.onload = () => {
-        // ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        ctx.clearRect(0, 0);
-        ctx.drawImage(img, 0, 0);
-        // 将canvas转为blob
-        canvas.toBlob(async blob => {
-            console.log(blob);
-            const data = [
-                new ClipboardItem({
-                    [blob.type]: blob,
-                }),
-            ];
-            // https://w3c.github.io/clipboard-apis/#dom-clipboard-write
-            await navigator.clipboard.write(data)
-                .then(
-                    () => {
-                        console.log("Copied to clipboard successfully!");
-                    },
-                    (e) => {
-                        console.error("Unable to write to clipboard.", e);
-                    }
-                );
-        });
-    }
-
 }
 
 chrome.runtime.onMessage.addListener(async function (message, sender, sendResponse) {
@@ -96,19 +59,19 @@ chrome.runtime.onMessage.addListener(async function (message, sender, sendRespon
     //Unchecked runtime.lastError: The message port closed before a response was received.
     if (message.action === 'copyImage') {
         // handleCopyImg(message.value)
-        getImageBlob(message.value, function(blob) {
+        sendResponse("received")
+        getImageBlob(message.value, function (blob) {
             copyImageBlobToClipboard(blob);
         });
 
-        sendResponse("received")
     }
     if (message.action === 'copyLink') {
+        sendResponse("received")
         copyLink(message.value).then(() => {
             console.log('pasted')
         }).catch((error) => {
             console.log('not pasted', error)
         })
-        sendResponse("received")
     }
 });
 

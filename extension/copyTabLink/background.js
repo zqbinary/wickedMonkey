@@ -13,13 +13,13 @@ chrome.runtime.onInstalled.addListener(function () {
 });
 chrome.commands.onCommand.addListener(function (command) {
     if (command === "copyLink") {
-        copyLink()
+        return handleCopyLink();
     }
 });
 
 // function copyImage()
-function copyLink() {
-    chrome.tabs.query({currentWindow: true, active: true}, function (tabs) {
+function handleCopyLink() {
+    return chrome.tabs.query({currentWindow: true, active: true}, function (tabs) {
         if (!tabs.length) {
             return
         }
@@ -56,7 +56,7 @@ function handleCopyImg(imageUrl) {
 
 chrome.contextMenus.onClicked.addListener(function (data) {
     if (data.menuItemId === 'menu-1') {
-        copyLink(data)
+        handleCopyLink(data)
     }
     if (data.menuItemId === "copyImage" && data.srcUrl) {
         console.log("Image URL:", data, data.srcUrl);
