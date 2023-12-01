@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "复制标题链接",
-  "version": "1.1",
-  "description": "在右键菜单中添加复制标题链接功能",
+  "name": "复制加强",
+  "version": "1.2",
+  "description": "复制标题，复制图片，复制html",
   "permissions": [
     "clipboardWrite",
     "contextMenus",

@@ -73,5 +73,22 @@ chrome.runtime.onMessage.addListener(async function (message, sender, sendRespon
             console.log('not pasted', error)
         })
     }
+    if (message.action === 'copyHtml') {
+        copyHtml()
+        sendResponse("received")
+    }
+
 });
 
+function copyHtml(event) {
+    var selectedText = window.getSelection().toString();
+    if (selectedText !== '') {
+        let selectedHTML = window.getSelection().getRangeAt(0).cloneContents();
+
+        let tempDiv = document.createElement('div');
+        tempDiv.appendChild(selectedHTML.cloneNode(true));
+
+        navigator.clipboard.writeText(tempDiv.innerHTML);
+
+    }
+}
