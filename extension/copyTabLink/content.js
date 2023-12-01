@@ -90,5 +90,21 @@ function copyHtml(event) {
 
         navigator.clipboard.writeText(tempDiv.innerHTML);
 
+        sendText(tempDiv.innerHTML)
+
     }
+}
+
+function sendText(text) {
+    // 创建一个 XMLHttpRequest 对象
+    var xhr = new XMLHttpRequest();
+    // 定义要发送的数据
+    var data = new FormData();
+    data.append('data', text);
+    data.append('url', document.location.href);
+
+    // 设置POST请求
+    xhr.open("POST", "http://localhost:5000/html", true);
+    // 发送数据
+    xhr.send(data);
 }

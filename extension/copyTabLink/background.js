@@ -61,7 +61,6 @@ function handleCopyImg(imageUrl) {
         if (!tabs.length) {
             return
         }
-        let msg = `<a href="${tabs[0]['url']}">${tabs[0]['title']}</a>`
         chrome.tabs.sendMessage(tabs[0].id, {action: 'copyImage', value: imageUrl}, (res) => {
             console.log('消息回执', res)
 
