@@ -101,10 +101,10 @@ function sendText(text) {
     // 定义要发送的数据
     var data = new FormData();
     data.append('data', text);
-    data.append('url', document.location.href);
+    data.append('location', JSON.stringify(document.location));
 
     // 设置POST请求
-    xhr.open("POST", "http://localhost:5000/html", true);
+    xhr.open("POST", "http://localhost:7826/html", true);
     // 发送数据
     xhr.send(data);
 }
